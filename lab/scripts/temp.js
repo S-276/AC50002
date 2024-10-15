@@ -3,11 +3,11 @@ function D3draw(){
     d3.select("head").append("H1").text("New Heading!")
     d3.select("body").append("p").text("Check")
 
-    d3.select("body").selectall("p")
+    d3.select("body").selectAll("p")
         .data(dataset)
         .enter()
         .append("p")
         .text("new para");
 }
 
-window.onLoad = D3Draw;
+window.onload = D3Draw;
