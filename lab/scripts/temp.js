@@ -10,4 +10,4 @@ function D3draw(){
         .text("new para");
 }
 
-window.onload = D3Draw;
+window.onload = D3draw;
