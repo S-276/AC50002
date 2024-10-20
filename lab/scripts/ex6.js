@@ -9,12 +9,8 @@ function d3Draw() {
         .attr("class", "bar")
         .style("height", function(d) {
             return (2 * d) + "px"; // Set the height based on data
-        })
-        .style("background-color", function(d) {
-            // Use a better way to calculate the color
-            let colorValue = Math.min(255, 2 * d); // Ensure the value is between 0 and 255
-            let hexColor = colorValue.toString(16).padStart(2, '0'); // Convert to hex and pad if needed
-            return "#" + hexColor + hexColor + hexColor; // Create a shade of grey
+        }).style("background-color", function(d) {
+            return "rgb(" + (2 * d) + ", " + (100 - d) + ", " + (255 - 2 * d) + ")";
         });
 }
 
