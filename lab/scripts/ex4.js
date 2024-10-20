@@ -7,7 +7,7 @@ let dataset = [5,10,15,20,25,30];
    .append("p")
    .text(Bob);
 }
-window.onload = D3Draw;
+window.onload = d3Draw;
 
 function Bob(data){
   return "new paragraph" + data;
