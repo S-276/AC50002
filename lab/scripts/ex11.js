@@ -14,7 +14,7 @@ function d3Draw(dataset){
 }
 
 function loadData() {
-  d3.csv("https://s-276.github.io/AC50002/lab/circles.csv", function(error, data) {
+  d3.json("http://34.147.162.172/Circles/Circles/50", function(error, data) {
     if (error) {
       console.log("Error:", error);
       console.log("Status code:", error.target.status);  // Log status code
