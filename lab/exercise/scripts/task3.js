@@ -1,25 +1,17 @@
 function drawBars() {
-            const contentDiv = document.getElementById('bar');
-            const values = [50, 75, 100, 150, 200, 250, 300, 350, 400, 450]; // Example values for heights
+            const barContainer = document.getElementById("barContainer");
+            barContainer.innerHTML = '';  // Clear previous bars if any
+			const numberOfBars = 10
+            for (let i = 0; i < numberOfBars; i++) {
+                let bar = document.createElement("div");
+                let height = (i + 1) * 30; // Ascending height for bars
+                let colour = ~~(i * 254 / numberOfBars); // Grayscale value
+                let scolour = "rgb(" + colour + "," + colour + "," + colour + ")";
 
-            // Clear the existing content if needed
-            contentDiv.innerHTML = "";
+                bar.style.height = height + "px";
+                bar.style.backgroundColor = scolour;
+                bar.className = "bar";
 
-            // Find the maximum value for scaling purposes
-            const maxValue = Math.max(...values);
-
-            for (let i = 0; i < values.length; i++) {
-                const barElement = document.createElement('div'); // Create a new <div> element for each bar
-
-                // Color calculation based on scaled height (grayscale)
-                var colour = ~~(height * 2.54); // Scale the color from 0 to 255
-                var scolour = "rgb(" + colour + "," + colour + "," + colour + ")"; // Create the RGB color string
-
-                // Set the height and background color of the bar
-                barElement.className = 'bar'; // Assign class for styling
-                barElement.style.height = height + "%"; // Set height of the bar
-                barElement.style.backgroundColor = scolour; // Set background color of the bar
-
-                contentDiv.appendChild(barElement); // Append the new <div> to the container
+                barContainer.appendChild(bar);
             }
         }
