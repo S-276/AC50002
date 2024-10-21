@@ -11,14 +11,16 @@ function d3Draw(dataset){
   }).attr("r",5);
 }
 
-function loadData(){
-  d3.csv("https://34.147.162.172/Circles/Circles/50",function(error,data){
-    if(error){
-      console.log(error)
-    }else{
+function loadData() {
+  d3.csv("https://34.147.162.172/Circles/Circles/50", function(error, data) {
+    if (error) {
+      console.log("Error:", error);
+      console.log("Status code:", error.target.status);  // Log status code
+    } else {
       d3Draw(data);
-  }
+    }
   });
-         }
+}
+
 
 window.onload=loadData;
