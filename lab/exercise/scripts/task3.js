@@ -1,7 +1,7 @@
 function drawBars() {
-            const barContainer = document.getElementById("barContainer");
+            const barContainer = document.getElementById("bar");
             barContainer.innerHTML = '';  // Clear previous bars if any
-			const numberOfBars = 10
+	    const numberOfBars = 10
             for (let i = 0; i < numberOfBars; i++) {
                 let bar = document.createElement("div");
                 let height = (i + 1) * 30; // Ascending height for bars
