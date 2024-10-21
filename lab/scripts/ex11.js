@@ -8,7 +8,9 @@ function d3Draw(dataset){
     return d.x;
   }).attr("cy",function(d){
     return d.y;
-  }).attr("r",5);
+  }).attr("r",function(d){
+    return d.r;
+  });
 }
 
 function loadData() {
