@@ -12,7 +12,7 @@ function d3Draw(dataset){
 }
 
 function loadData(){
-  d3.csv("data.txt",function(error,data){
+  d3.csv("data1.txt",function(error,data){
     if(error){
       console.log(error)
     }else{
