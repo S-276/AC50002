@@ -18,7 +18,7 @@ function loadData(){
     }else{
       d3Draw(data);
   }
-  };
+  });
          }
 
 window.onload=loadData;
