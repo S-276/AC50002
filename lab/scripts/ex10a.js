@@ -17,6 +17,7 @@ function loadData(){
       console.log(error)
     }else{
       d3Draw(data);
+  }
   });
 }
 
