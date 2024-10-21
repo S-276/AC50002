@@ -11,9 +11,6 @@ function drawBars() {
             for (let i = 0; i < values.length; i++) {
                 const barElement = document.createElement('div'); // Create a new <div> element for each bar
 
-                // Calculate the height based on the value and scale it to fit the container
-                const height = (values[i] / maxValue) * 100; // Scale height to a percentage of the max value
-
                 // Color calculation based on scaled height (grayscale)
                 var colour = ~~(height * 2.54); // Scale the color from 0 to 255
                 var scolour = "rgb(" + colour + "," + colour + "," + colour + ")"; // Create the RGB color string
