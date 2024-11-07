@@ -1,13 +1,17 @@
-<!DOCTYPE HTML>
-<html>
-  <head>
-    <meta charset = "UTF-8">
-    <meta name = "viewport"content = "width = device-width,initial-sclae = 1.0">
-    <title>D3 Assignment </title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UK Towns Map with Leaflet and D3.js</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <!-- D3.js Library -->
+    <script src="lab/d3/d3.v3.js"></script>
+    <!-- Leaflet Library -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script type = "text/javascript" src = "lab/d3/d3.v3.js"></script>
-    <script type = "text/javascript" src = "assignment/sid.js"></script>
+    <!-- External JS -->
+    <script src="assignment/sid.js"></script>
     <style>
         #map { width: 800px; height: 600px; position: relative; }
         .tooltip {
@@ -20,10 +24,15 @@
             box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.5);
             font-size: 12px;
             pointer-events: none;
+        }
     </style>
-  </head>
-  <body>
-     <h1>UK Towns Map with Leaflet and D3.js</h1>
+</head>
+<body>
+
+    <h1>UK Towns Map with Leaflet and D3.js</h1>
+    
+    <label for="cityCountSlider">Number of Cities: <span id="cityCount">50</span></label>
+    <input type="range" id="cityCountSlider" min="10" max="500" step="10" value="50" />
     
     <!-- Leaflet Map -->
     <div id="map"></div>
@@ -31,5 +40,5 @@
     <!-- Tooltip for displaying information -->
     <div class="tooltip"></div>
 
-  </body>
+</body>
 </html>
