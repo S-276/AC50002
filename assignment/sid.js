@@ -72,13 +72,14 @@ function createSVGMarker(town, g, tooltip, map) {
                   .attr("stroke-width", 1);
 
   marker.on("mouseover", function(event) {
+    const e = d3.event
       tooltip.html(`<strong>Town:</strong> ${town.Town}<br> 
                     <strong>Population:</strong> ${town.Population}<br> 
                     <strong>Latitude:</strong> ${town.lat}<br> 
                     <strong>Longitude:</strong> ${town.lng}`)
              .style("visibility", "visible")
-             .style("left", (event.pageX + 10) + "px")
-             .style("top", (event.pageY - 10) + "px");
+             .style("left", (e.pageX + 10) + "px")
+             .style("top", (e.pageY - 10) + "px");
   })
   .on("mouseout", function() {
       tooltip.style("visibility", "hidden");
