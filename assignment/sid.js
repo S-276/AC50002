@@ -41,7 +41,8 @@ function TownMarker(town, map, tooltip) {
 function TownData(map) {
   const tooltip = d3.select(".tooltip");
 
-  d3.json("http://34.147.162.172/Circles/Towns/50").then(function(towns) {
+  d3.json("http://34.147.162.172/Circles/Towns/50",function(error,towns) {
+      if (error) throw error;
       towns.forEach(town => {
           TownMarker(town, map, tooltip);
       });
