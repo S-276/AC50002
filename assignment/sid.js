@@ -104,7 +104,8 @@ function main() {
   // Add SVG overlay for town markers
   const g = initSVGOverlay(map);
 
-  d3.json("http://34.147.162.172/Circles/Towns/50").then(function(towns) {
+  d3.json("http://34.147.162.172/Circles/Towns/50",function(error,towns) {
+       if (error) throw error;
       towns.forEach(town => {
           createSVGMarker(town, g, tooltip, map);
       });
