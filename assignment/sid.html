@@ -2,12 +2,34 @@
 <html>
   <head>
     <meta charset = "UTF-8">
+    <meta name = "viewport"content = "width = device-width,initial-sclae = 1.0">
     <title>D3 Assignment </title>
-    <link rel = "stylesheet" href = "assignment/bars.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script type = "text/javascript" src = "lab/d3/d3.v3.js"></script>
     <script type = "text/javascript" src = "assignment/sid.js"></script>
+    <style>
+        #map { width: 800px; height: 600px; position: relative; }
+        .tooltip {
+            position: absolute;
+            visibility: hidden;
+            background-color: white;
+            border: 1px solid #ccc;
+            padding: 5px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.5);
+            font-size: 12px;
+            pointer-events: none;
+    </style>
   </head>
   <body>
-    <p>Click here to load data</p>
+     <h1>UK Towns Map with Leaflet and D3.js</h1>
+    
+    <!-- Leaflet Map -->
+    <div id="map"></div>
+
+    <!-- Tooltip for displaying information -->
+    <div class="tooltip"></div>
+
   </body>
 </html>
