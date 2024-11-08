@@ -20,7 +20,11 @@ function projectPoint(lat, lng) {
 // Load and plot towns from data feed
 function loadData() {
     d3.json("http://34.147.162.172/Circles/Towns/50", function(error, data) {
-        if (error) throw error;
+        if (error) {
+            console.error("Error loading data:",error );
+            return;
+        }
+        console.log("Loaded Data:",data);
 
         // Select the number of towns from the slider
         var townCount = document.getElementById("townCount").value;
@@ -37,7 +41,7 @@ function loadData() {
             .attr("class", "town")
             .attr("r", 5)
             .style("fill", "blue")
-            .style("opacity", 0)
+            .style("opacity", 0.7)
             .transition().duration(1000)
             .style("opacity", 1);
 
@@ -46,6 +50,9 @@ function loadData() {
             circles.attr("cx", function(d) { return projectPoint(d.lat, d.lng)[0]; })
                    .attr("cy", function(d) { return projectPoint(d.lat, d.lng)[1]; });
         }
+        update();
+        console.log("Plotted town at:", projectPoint(d.lat, d.lng));
+
         
         map.on("viewreset", update); // Update positions when the map view changes
         update(); // Initial position update
