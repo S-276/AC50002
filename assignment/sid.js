@@ -1,72 +1,57 @@
 // Initialize the Leaflet map
 var map = L.map('map').setView([55, -3.5], 6); // Center on the UK
 
-// Load map tiles (OpenStreetMap as an example)
+// Load OpenStreetMap tiles
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 18,
     attribution: '© OpenStreetMap contributors'
 }).addTo(map);
 
-// Create a layer for D3 elements on top of Leaflet
+// Create a D3 layer on top of Leaflet
 var svgLayer = d3.select(map.getPanes().overlayPane).append("svg");
 var g = svgLayer.append("g").attr("class", "leaflet-zoom-hide");
 
-// Function to project Leaflet's coordinates to the SVG layer
+// Helper function to project LatLng points to the SVG layer
 function projectPoint(lat, lng) {
     var point = map.latLngToLayerPoint(new L.LatLng(lat, lng));
-    console.log(`Projecting point: (${lat}, ${lng}) -> (${point.x}, ${point.y})`);
     return [point.x, point.y];
 }
 
-// Load and plot towns from data feed
+// Function to load and plot data
 function loadData() {
     d3.json("http://34.147.162.172/Circles/Towns/50", function(error, data) {
-        if (error) {
-            console.error("Error loading data:",error );
-            return;
-        }
-        console.log("Loaded Data:",data);
+        if (error) throw error;
 
-        // Select the number of towns from the slider
+        // Limit the number of towns using the slider value
         var townCount = document.getElementById("townCount").value;
         var towns = data.slice(0, townCount);
 
-        // Bind data and create circles for towns
+        // Bind data and create circles for each town
         var circles = g.selectAll(".town")
             .data(towns, function(d) { return d.Town; });
 
+        // Remove old circles
         circles.exit().remove();
 
-        // Enter and update circles
+        // Enter new circles
         circles.enter().append("circle")
             .attr("class", "town")
             .attr("r", 5)
             .style("fill", "blue")
-            .style("opacity", 0.7)
+            .style("opacity", 0)
             .transition().duration(1000)
-            .style("opacity", 1);
-            console.log("Circles created:", circles.enter().size());
+            .style("opacity", 0.7);
 
-        // Position circles on the map
+        // Update the positions of the circles
         function update() {
-            circles.attr("cx", function(d) {
-                const x = projectPoint(d.lat, d.lng)[0];
-                console.log(`Setting cx for ${d.Town}: ${x}`); // Debug log
-                return x;
-            }).attr("cy", function(d) {
-                const y = projectPoint(d.lat, d.lng)[1];
-                console.log(`Setting cy for ${d.Town}: ${y}`); // Debug log
-                return y;
-            });
+            circles.attr("cx", function(d) { return projectPoint(d.lat, d.lng)[0]; })
+                   .attr("cy", function(d) { return projectPoint(d.lat, d.lng)[1]; });
         }
-        update();
-        console.log("Plotted town at:", projectPoint(d.lat, d.lng));
 
-        
-        map.on("viewreset", update); // Update positions when the map view changes
-        update(); // Initial position update
+        map.on("viewreset", update); // Update on map reset
+        update(); // Initial update
 
-        // Add tooltips on hover
+        // Add tooltips for additional information on hover
         circles.on("mouseover", function(d) {
             d3.select(this).attr("r", 8).style("fill", "orange");
             L.popup()
@@ -80,9 +65,9 @@ function loadData() {
     });
 }
 
-// Reload data when button or slider changes
+// Attach loadData function to button and slider changes
 d3.select("#reloadData").on("click", loadData);
 d3.select("#townCount").on("input", loadData);
 
-// Initial load
+// Initial load of data
 loadData();
