@@ -1,48 +1,23 @@
-/* Basic body and container styling */
+/* Reduced map container area */
+#map {
+    height: 80vh;
+    width: 90vw;
+    margin: auto;
+    border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+}
+
 body {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
     margin: 0;
-    background-color: #333;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
 }
 
-svg#map {
-    width: 800px;
-    height: 600px;
-    border: 1px solid #ccc;
-}
-
-.subunit {
-    fill: white;
-    stroke: antiquewhite;
-}
-.subunit:hover {
-    fill: whitesmoke;
-}
-
-.town {
-    fill: red;
-    stroke: white;
-    stroke-width: 1px;
-}
-.town:hover {
-    fill: yellow;
-}
-
-/* Tooltip styling */
-.tooltip {
-    position: absolute;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    border-radius: 4px;
-    display: none;
-    pointer-events: none;
-}
-
-/* Control panel styling */
+/* Control Panel styling */
 #control-panel {
     position: absolute;
     top: 20px;
@@ -50,15 +25,23 @@ svg#map {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
 }
 
 #reload-button {
-    padding: 10px 20px;
+    padding: 8px 12px;
     background-color: #007BFF;
     color: white;
     border: none;
     cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s;
 }
+
 #reload-button:hover {
     background-color: #0056b3;
 }
@@ -66,4 +49,54 @@ svg#map {
 #town-count-input {
     padding: 5px;
     width: 60px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+/* Tooltip container for town details */
+.leaflet-popup {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    padding: 10px;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+/* Custom icon styles for pin marker */
+.custom-pin-icon {
+    background-color: #ff6f61;
+    width: 15px;
+    height: 15px;
+    display: block;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2);
+}
+
+.custom-pin-icon::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    margin: 4px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+}
+
+/* Animation for appearing and disappearing pins */
+.marker-transition {
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+}
+
+.marker-transition.appear {
+    opacity: 10;
+
+}
+/* Transition for fading out */
+.marker-transition.disappear {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
 }
