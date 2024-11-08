@@ -2,24 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UK Town Map with Leaflet and D3</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <title>UK Map with D3 and TopoJSON</title>
     <script src="../lab/d3/d3.v3.js"></script>
+    <script src="https://d3js.org/topojson.v1.min.js"></script>
     <style>
-        #map { width: 100%; height: 600px; }
+        #map {
+            width: 800px;
+            height: 600px;
+        }
+        .town {
+            fill: blue;
+            opacity: 0.8;
+        }
+        .tooltip {
+            position: absolute;
+            background-color: #fff;
+            padding: 5px;
+            border: 1px solid #ccc;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
-    <h1>UK Town Map with Leaflet and D3</h1>
-    <button id="reloadData">Reload Data</button>
+    <h1>UK Town Map with D3 and TopoJSON</h1>
     <label for="townCount">Number of Towns:</label>
-    <input type="range" id="townCount" min="1" max="50" value="25" />
-
+    <input type="range" id="townCount" min="1" max="50" value="10" />
+    <button id="reloadData">Reload Data</button>
     <div id="map"></div>
-
-    <!-- Link to the external JavaScript file -->
     <script src="sid.js"></script>
 </body>
 </html>

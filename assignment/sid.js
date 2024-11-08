@@ -1,73 +1,76 @@
-// Initialize the Leaflet map
-var map = L.map('map').setView([55, -3.5], 6); // Center on the UK
+// Set up the dimensions and create the SVG element
+var width = 800, height = 600;
+var svg = d3.select("#map").append("svg")
+    .attr("width", width)
+    .attr("height", height);
 
-// Load OpenStreetMap tiles
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 18,
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
+// Create a projection and path generator for the UK map
+var projection = d3.geo.albers()
+    .center([0, 55.4])    // Center of UK
+    .rotate([4.4, 0])
+    .parallels([50, 60])
+    .scale(4500)          // Scale to zoom into the UK
+    .translate([width / 2, height / 2]);
 
-// Create a D3 layer on top of Leaflet
-var svgLayer = d3.select(map.getPanes().overlayPane).append("svg");
-var g = svgLayer.append("g").attr("class", "leaflet-zoom-hide");
+var path = d3.geo.path().projection(projection);
 
-// Helper function to project LatLng points to the SVG layer
-function projectPoint(lat, lng) {
-    var point = map.latLngToLayerPoint(new L.LatLng(lat, lng));
-    return [point.x, point.y];
-}
+// Load and draw the UK map with TopoJSON
+d3.json("path/to/uk-topo.json", function(error, uk) {
+    if (error) throw error;
 
-// Function to load and plot data
+    var subunits = topojson.feature(uk, uk.objects.subunits);
+    
+    svg.selectAll(".subunit")
+        .data(subunits.features)
+        .enter().append("path")
+        .attr("class", "subunit")
+        .attr("d", path)
+        .style("fill", "#ccc")
+        .style("stroke", "#333");
+});
+
+// Function to load and plot towns
 function loadData() {
     d3.json("http://34.147.162.172/Circles/Towns/50", function(error, data) {
         if (error) throw error;
 
-        // Limit the number of towns using the slider value
         var townCount = document.getElementById("townCount").value;
         var towns = data.slice(0, townCount);
 
-        // Bind data and create circles for each town
-        var circles = g.selectAll(".town")
+        // Bind data and create circles for towns
+        var circles = svg.selectAll(".town")
             .data(towns, function(d) { return d.Town; });
 
-        // Remove old circles
         circles.exit().remove();
 
-        // Enter new circles
+        // Enter and update circles
         circles.enter().append("circle")
             .attr("class", "town")
-            .attr("r", 5)
+            .attr("r", 3)
             .style("fill", "blue")
-            .style("opacity", 0)
-            .transition().duration(1000)
-            .style("opacity", 0.7);
+            .style("opacity", 0.8)
+            .attr("transform", function(d) {
+                return "translate(" + projection([d.lng, d.lat]) + ")";
+            });
 
-        // Update the positions of the circles
-        function update() {
-            circles.attr("cx", function(d) { return projectPoint(d.lat, d.lng)[0]; })
-                   .attr("cy", function(d) { return projectPoint(d.lat, d.lng)[1]; });
-        }
-
-        map.on("viewreset", update); // Update on map reset
-        update(); // Initial update
-
-        // Add tooltips for additional information on hover
+        // Add tooltips on hover
         circles.on("mouseover", function(d) {
-            d3.select(this).attr("r", 8).style("fill", "orange");
-            L.popup()
-                .setLatLng([d.lat, d.lng])
-                .setContent(d.Town + "<br>Population: " + d.Population)
-                .openOn(map);
-        }).on("mouseout", function(d) {
-            d3.select(this).attr("r", 5).style("fill", "blue");
-            map.closePopup();
+            d3.select(this).attr("r", 6).style("fill", "orange");
+            d3.select("body").append("div")
+                .attr("class", "tooltip")
+                .html(d.Town + "<br>Population: " + d.Population)
+                .style("left", (d3.event.pageX + 5) + "px")
+                .style("top", (d3.event.pageY - 28) + "px");
+        }).on("mouseout", function() {
+            d3.select(this).attr("r", 3).style("fill", "blue");
+            d3.select(".tooltip").remove();
         });
     });
 }
 
-// Attach loadData function to button and slider changes
+// Attach the loadData function to the button and slider
 d3.select("#reloadData").on("click", loadData);
 d3.select("#townCount").on("input", loadData);
 
-// Initial load of data
+// Initial data load
 loadData();
