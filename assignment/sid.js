@@ -14,6 +14,7 @@ var g = svgLayer.append("g").attr("class", "leaflet-zoom-hide");
 // Function to project Leaflet's coordinates to the SVG layer
 function projectPoint(lat, lng) {
     var point = map.latLngToLayerPoint(new L.LatLng(lat, lng));
+    console.log(`Projecting point: (${lat}, ${lng}) -> (${point.x}, ${point.y})`);
     return [point.x, point.y];
 }
 
@@ -44,11 +45,19 @@ function loadData() {
             .style("opacity", 0.7)
             .transition().duration(1000)
             .style("opacity", 1);
+            console.log("Circles created:", circles.enter().size());
 
         // Position circles on the map
         function update() {
-            circles.attr("cx", function(d) { return projectPoint(d.lat, d.lng)[0]; })
-                   .attr("cy", function(d) { return projectPoint(d.lat, d.lng)[1]; });
+            circles.attr("cx", function(d) {
+                const x = projectPoint(d.lat, d.lng)[0];
+                console.log(`Setting cx for ${d.Town}: ${x}`); // Debug log
+                return x;
+            }).attr("cy", function(d) {
+                const y = projectPoint(d.lat, d.lng)[1];
+                console.log(`Setting cy for ${d.Town}: ${y}`); // Debug log
+                return y;
+            });
         }
         update();
         console.log("Plotted town at:", projectPoint(d.lat, d.lng));
