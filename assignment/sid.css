@@ -1,20 +1,36 @@
-/* Reduced map container area */
+
+body {
+    background-color: #f4f4f9; /* Light background */
+    color: #333; /* Dark text */
+    font-family: Arial, sans-serif;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* Title and Description */
+h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+    color: #333; /* Dark text */
+}
+
+p {
+    font-size: 16px;
+    color: #555; /* Lighter gray text */
+    margin-bottom: 20px;
+}
+
+/* Map container */
 #map {
     height: 80vh;
     width: 90vw;
     margin: auto;
     border-radius: 10px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
-}
-
-body {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f9;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Control Panel styling */
@@ -24,55 +40,61 @@ body {
     left: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
-    background-color: rgba(255, 255, 255, 0.8);
-    padding: 15px;
+    gap: 15px;
+    background-color: rgba(255, 255, 255, 0.8); /* Light background */
+    padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
     z-index: 1000;
+    color: #333; /* Dark color for text */
 }
 
+/* Input and Button Styling */
 #reload-button {
-    padding: 8px 12px;
-    background-color: #007BFF;
+    padding: 10px 15px;
+    background-color: #007BFF; /* Blue button */
     color: white;
     border: none;
     cursor: pointer;
     border-radius: 5px;
-    transition: background-color 0.3s;
+    transition: background-color 0.3s ease-in-out;
+    font-size: 14px;
 }
 
 #reload-button:hover {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Darker blue on hover */
 }
 
 #town-count-input {
-    padding: 5px;
-    width: 60px;
-    border-radius: 4px;
-    border: 1px solid #ccc;
+    padding: 10px;
+    width: 80px;
+    border-radius: 5px;
+    border: 1px solid #888;
+    background-color: #fff; /* White input fields */
+    color: #333; /* Dark text */
+    font-size: 14px;
 }
 
-/* Tooltip container for town details */
+/* Tooltip Styling */
 .leaflet-popup {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.9); /* Light background */
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 14px;
     padding: 10px;
-    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
-    color: #333;
+    color: #333; /* Dark text */
 }
 
-/* Custom icon styles for pin marker */
+/* Custom Pin Icon Styling */
 .custom-pin-icon {
-    background-color: #ff6f61;
+    background-color: #ff6f61; /* Bright color for the pin */
     width: 15px;
     height: 15px;
     display: block;
     border-radius: 50% 50% 50% 0;
     transform: rotate(-45deg);
     box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out; /* Smooth transition for scaling */
 }
 
 .custom-pin-icon::before {
@@ -85,17 +107,21 @@ body {
     position: absolute;
 }
 
-/* Animation for appearing and disappearing pins */
+/* Scale up the marker when hovered */
+.custom-pin-icon:hover {
+    transform: rotate(-45deg) scale(1.5); /* Enlarge the pin */
+}
+
+/* Smooth Marker Transitions */
 .marker-transition {
     opacity: 0;
-    transition: opacity 1s ease-in-out;
+    transition: opacity 0.5s ease-in-out;
 }
 
 .marker-transition.appear {
-    opacity: 10;
-
+    opacity: 1;
 }
-/* Transition for fading out */
+
 .marker-transition.disappear {
     opacity: 0;
     transition: opacity 0.5s ease-in-out;
