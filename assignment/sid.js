@@ -1,76 +1,83 @@
-// Set up the dimensions and create the SVG element
-var width = 800, height = 600;
-var svg = d3.select("#map").append("svg")
-    .attr("width", width)
-    .attr("height", height);
+// Configuration and setup
+const width = 800, height = 600;
+const projection = d3.geoMercator().center([-2, 55.4]).scale(2000).translate([width / 2, height / 2]);
+const path = d3.geoPath().projection(projection);
+const tooltip = d3.select("#tooltip");
+const svg = d3.select("svg#map");
+const townGroup = svg.append("g").attr("class", "towns");
 
-// Create a projection and path generator for the UK map
-var projection = d3.geo.albers()
-    .center([0, 55.4])    // Center of UK
-    .rotate([4.4, 0])
-    .parallels([50, 60])
-    .scale(4500)          // Scale to zoom into the UK
-    .translate([width / 2, height / 2]);
+// Load map data and initialize map
+d3.json("https://raw.githubusercontent.com/markmarkoh/datamaps/master/src/js/data/uk.topo.json").then(initMap).catch(console.error);
 
-var path = d3.geo.path().projection(projection);
-
-// Load and draw the UK map with TopoJSON
-d3.json("path/to/uk-topo.json", function(error, uk) {
-    if (error) throw error;
-
-    var subunits = topojson.feature(uk, uk.objects.subunits);
-    
+function initMap(ukData) {
+    const subunits = topojson.feature(ukData, ukData.objects.subunits).features;
     svg.selectAll(".subunit")
-        .data(subunits.features)
-        .enter().append("path")
-        .attr("class", "subunit")
-        .attr("d", path)
-        .style("fill", "#ccc")
-        .style("stroke", "#333");
-});
+       .data(subunits)
+       .enter()
+       .append("path")
+       .attr("class", "subunit")
+       .attr("d", path)
+       .on("mouseover", showTooltip)
+       .on("mouseout", hideTooltip);
 
-// Function to load and plot towns
-function loadData() {
-    d3.json("http://34.147.162.172/Circles/Towns/50", function(error, data) {
-        if (error) throw error;
-
-        var townCount = document.getElementById("townCount").value;
-        var towns = data.slice(0, townCount);
-
-        // Bind data and create circles for towns
-        var circles = svg.selectAll(".town")
-            .data(towns, function(d) { return d.Town; });
-
-        circles.exit().remove();
-
-        // Enter and update circles
-        circles.enter().append("circle")
-            .attr("class", "town")
-            .attr("r", 3)
-            .style("fill", "blue")
-            .style("opacity", 0.8)
-            .attr("transform", function(d) {
-                return "translate(" + projection([d.lng, d.lat]) + ")";
-            });
-
-        // Add tooltips on hover
-        circles.on("mouseover", function(d) {
-            d3.select(this).attr("r", 6).style("fill", "orange");
-            d3.select("body").append("div")
-                .attr("class", "tooltip")
-                .html(d.Town + "<br>Population: " + d.Population)
-                .style("left", (d3.event.pageX + 5) + "px")
-                .style("top", (d3.event.pageY - 28) + "px");
-        }).on("mouseout", function() {
-            d3.select(this).attr("r", 3).style("fill", "blue");
-            d3.select(".tooltip").remove();
-        });
-    });
+    applyZoom();
+    loadTowns();
+    setupReloadButton();
 }
 
-// Attach the loadData function to the button and slider
-d3.select("#reloadData").on("click", loadData);
-d3.select("#townCount").on("input", loadData);
+function showTooltip(event, d) {
+    d3.select(event.currentTarget).style("fill", "whitesmoke");
+    tooltip.style("display", "inline-block").html(`Region: ${d.properties.name}`);
+}
 
-// Initial data load
-loadData();
+function hideTooltip(event) {
+    d3.select(event.currentTarget).style("fill", "white");
+    tooltip.style("display", "none");
+}
+
+// Load and display town data
+function loadTowns() {
+    const townCount = document.getElementById("town-count-input").value || 50;
+    const url = `http://34.147.162.172/Circles/Towns/${townCount}`;
+
+    d3.json(url).then(renderTowns).catch(error => console.error("Error fetching town data:", error));
+}
+
+function renderTowns(towns) {
+    const validTowns = towns.filter(d => !isNaN(d.lng) && !isNaN(d.lat));
+
+    townGroup.selectAll(".town").remove();
+
+    townGroup.selectAll(".town")
+             .data(validTowns)
+             .enter()
+             .append("circle")
+             .attr("class", "town")
+             .attr("r", 5)
+             .attr("cx", d => projection([d.lng, d.lat])[0])
+             .attr("cy", d => projection([d.lng, d.lat])[1])
+             .on("mouseover", (event, d) => {
+                 d3.select(event.currentTarget).style("fill", "yellow");
+                 tooltip.style("display", "inline-block")
+                        .html(`Town: ${d.Town}<br>Population: ${d.Population}<br>County: ${d.County}`);
+             })
+             .on("mouseout", function() {
+                 d3.select(this).style("fill", "red");
+                 tooltip.style("display", "none");
+             });
+}
+
+// Zoom and pan functionality
+function applyZoom() {
+    const zoom = d3.zoom().scaleExtent([1, 8]).on("zoom", event => {
+        svg.selectAll("path").attr("transform", event.transform);
+        svg.select(".towns").attr("transform", event.transform);
+    });
+
+    svg.call(zoom);
+}
+
+// Reload button event listener
+function setupReloadButton() {
+    document.getElementById("reload-button").addEventListener("click", loadTowns);
+}
