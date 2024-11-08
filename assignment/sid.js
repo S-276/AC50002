@@ -1,126 +1,72 @@
 // Initialize the Leaflet map
-function initMap() {
-  const map = L.map('map').setView([54.505, -2.09], 6); // Latitude, Longitude, Zoom Level
+var map = L.map('map').setView([55, -3.5], 6); // Center on the UK
 
-  // Loading OpenStreetMap tiles for Leaflet map
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-  }).addTo(map);
+// Load map tiles (OpenStreetMap as an example)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
 
-  return map;
+// Create a layer for D3 elements on top of Leaflet
+var svgLayer = d3.select(map.getPanes().overlayPane).append("svg");
+var g = svgLayer.append("g").attr("class", "leaflet-zoom-hide");
+
+// Function to project Leaflet's coordinates to the SVG layer
+function projectPoint(lat, lng) {
+    var point = map.latLngToLayerPoint(new L.LatLng(lat, lng));
+    return [point.x, point.y];
 }
 
-// Function to create a marker for each town
-function TownMarker(town, map, tooltip) {
-  const latLng = new L.LatLng(town.lat, town.lng);
+// Load and plot towns from data feed
+function loadData() {
+    d3.json("http://34.147.162.172/Circles/Towns/50", function(error, data) {
+        if (error) throw error;
 
-  // Create a circle marker
-  const marker = L.circleMarker(latLng, {
-      radius: 5,
-      color: 'red',
-      fillColor: '#f03',
-      fillOpacity: 0.6
-  }).addTo(map);
+        // Select the number of towns from the slider
+        var townCount = document.getElementById("townCount").value;
+        var towns = data.slice(0, townCount);
 
-  // Show tooltip on hover
-  marker.on("mouseover", function(event) {
-      tooltip.html(`<strong>Town:</strong> ${town.Town}<br> 
-                    <strong>Population:</strong> ${town.Population}<br> 
-                    <strong>Latitude:</strong> ${town.lat}<br> 
-                    <strong>Longitude:</strong> ${town.lng}`)
-             .style("visibility", "visible")
-             .style("left", (event.originalEvent.pageX + 10) + "px")
-             .style("top", (event.originalEvent.pageY - 10) + "px");
-  })
-  .on("mouseout", function() {
-      tooltip.style("visibility", "hidden");
-  });
+        // Bind data and create circles for towns
+        var circles = g.selectAll(".town")
+            .data(towns, function(d) { return d.Town; });
+
+        circles.exit().remove();
+
+        // Enter and update circles
+        circles.enter().append("circle")
+            .attr("class", "town")
+            .attr("r", 5)
+            .style("fill", "blue")
+            .style("opacity", 0)
+            .transition().duration(1000)
+            .style("opacity", 1);
+
+        // Position circles on the map
+        function update() {
+            circles.attr("cx", function(d) { return projectPoint(d.lat, d.lng)[0]; })
+                   .attr("cy", function(d) { return projectPoint(d.lat, d.lng)[1]; });
+        }
+        
+        map.on("viewreset", update); // Update positions when the map view changes
+        update(); // Initial position update
+
+        // Add tooltips on hover
+        circles.on("mouseover", function(d) {
+            d3.select(this).attr("r", 8).style("fill", "orange");
+            L.popup()
+                .setLatLng([d.lat, d.lng])
+                .setContent(d.Town + "<br>Population: " + d.Population)
+                .openOn(map);
+        }).on("mouseout", function(d) {
+            d3.select(this).attr("r", 5).style("fill", "blue");
+            map.closePopup();
+        });
+    });
 }
 
-// Function to fetch town data and create markers
-function TownData(map) {
-  const tooltip = d3.select(".tooltip");
+// Reload data when button or slider changes
+d3.select("#reloadData").on("click", loadData);
+d3.select("#townCount").on("input", loadData);
 
-  d3.json("http://34.147.162.172/Circles/Towns/50",function(error,towns) {
-      if (error) throw error;
-      towns.forEach(town => {
-          TownMarker(town, map, tooltip);
-      });
-  });
-}
-
-// Initialize an SVG overlay on the map
-function initSVGOverlay(map) {
-  const svg = d3.select(map.getPanes().overlayPane).append("svg")
-                .attr("width", map.getSize().x)
-                .attr("height", map.getSize().y);
-
-  const g = svg.append("g").attr("class", "leaflet-zoom-hide");
-  return g;
-}
-
-// Function to create an SVG marker for each town
-function createSVGMarker(town, g, tooltip, map) {
-  const latLng = map.latLngToLayerPoint([town.lat, town.lng]);
-
-  const marker = g.append("circle")
-                  .attr("cx", latLng.x)
-                  .attr("cy", latLng.y)
-                  .attr("r", 5)
-                  .attr("fill", "#f03")
-                  .attr("stroke", "red")
-                  .attr("stroke-width", 1);
-
-  marker.on("mouseover", function(event) {
-    const e = d3.event
-      tooltip.html(`<strong>Town:</strong> ${town.Town}<br> 
-                    <strong>Population:</strong> ${town.Population}<br> 
-                    <strong>Latitude:</strong> ${town.lat}<br> 
-                    <strong>Longitude:</strong> ${town.lng}`)
-             .style("visibility", "visible")
-             .style("left", (e.pageX + 10) + "px")
-             .style("top", (e.pageY - 10) + "px");
-  })
-  .on("mouseout", function() {
-      tooltip.style("visibility", "hidden");
-  });
-}
-
-// Function to update SVG markers on zoom or pan
-function updateSVGMarkers(g, map, towns, tooltip) {
-  g.selectAll("circle").remove();
-  towns.forEach(town => {
-      createSVGMarker(town, g, tooltip, map);
-  });
-}
-
-// Main function to initialize everything
-function main() {
-  const map = initMap();
-  const tooltip = d3.select(".tooltip");
-
-  // Fetch and display town data as markers
-  TownData(map);
-
-  // Add SVG overlay for town markers
-  const g = initSVGOverlay(map);
-
-  d3.json("http://34.147.162.172/Circles/Towns/50",function(error,towns) {
-       if (error) throw error;
-      towns.forEach(town => {
-          createSVGMarker(town, g, tooltip, map);
-      });
-
-      // Update markers on zoom or pan
-      map.on("zoomend", function() {
-          updateSVGMarkers(g, map, towns, tooltip);
-      });
-
-      map.on("moveend", function() {
-          updateSVGMarkers(g, map, towns, tooltip);
-      });
-  });
-}
-
-// Call the main function to initialize everything
-main();
+// Initial load
+loadData();
