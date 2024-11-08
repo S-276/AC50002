@@ -26,8 +26,6 @@ const pinIcon = L.divIcon({
 const markersLayer = L.layerGroup().addTo(map);
 
 // Function to load and render towns
-// Function to load and render towns
-// Function to load and render towns
 function loadTowns() {
     const townCount = document.getElementById("town-count-input").value || 50;
     const url = `http://34.147.162.172/Circles/Towns/${townCount}`;
