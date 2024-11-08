@@ -1,83 +1,99 @@
-// Configuration and setup
-const width = 800, height = 600;
-const projection = d3.geoMercator().center([-2, 55.4]).scale(2000).translate([width / 2, height / 2]);
-const path = d3.geoPath().projection(projection);
-const tooltip = d3.select("#tooltip");
-const svg = d3.select("svg#map");
-const townGroup = svg.append("g").attr("class", "towns");
+// Map setup with Leaflet centered on the UK
+const map = L.map('map', {
+    center: [55.4, -2],
+    zoom: 6,
+    maxBounds: [
+        [49.5, -10.5],
+        [61, 3]
+    ]
+});
 
-// Load map data and initialize map
-d3.json("https://raw.githubusercontent.com/markmarkoh/datamaps/master/src/js/data/uk.topo.json").then(initMap).catch(console.error);
+// Tile layer for the map (using OpenStreetMap tiles)
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 10,
+    minZoom: 5,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
 
-function initMap(ukData) {
-    const subunits = topojson.feature(ukData, ukData.objects.subunits).features;
-    svg.selectAll(".subunit")
-       .data(subunits)
-       .enter()
-       .append("path")
-       .attr("class", "subunit")
-       .attr("d", path)
-       .on("mouseover", showTooltip)
-       .on("mouseout", hideTooltip);
+// Custom pin icon as Leaflet divIcon
+const pinIcon = L.divIcon({
+    className: 'custom-pin-icon marker-transition',
+    iconSize: [20, 20],
+    iconAnchor: [10, 10]
+});
 
-    applyZoom();
-    loadTowns();
-    setupReloadButton();
-}
+// Create a layer group to hold markers so we can easily clear them
+const markersLayer = L.layerGroup().addTo(map);
 
-function showTooltip(event, d) {
-    d3.select(event.currentTarget).style("fill", "whitesmoke");
-    tooltip.style("display", "inline-block").html(`Region: ${d.properties.name}`);
-}
-
-function hideTooltip(event) {
-    d3.select(event.currentTarget).style("fill", "white");
-    tooltip.style("display", "none");
-}
-
-// Load and display town data
+// Function to load and render towns
+// Function to load and render towns
+// Function to load and render towns
 function loadTowns() {
     const townCount = document.getElementById("town-count-input").value || 50;
     const url = `http://34.147.162.172/Circles/Towns/${townCount}`;
 
-    d3.json(url).then(renderTowns).catch(error => console.error("Error fetching town data:", error));
+    fetch(url)
+        .then(response => response.json())
+        .then(towns => {
+            const validTowns = towns.filter(d => !isNaN(d.lng) && !isNaN(d.lat));
+
+            // Clear previous markers from the map with disappearing transition
+            markersLayer.eachLayer(function (layer) {
+                const markerElement = layer.getElement();
+                markerElement.classList.add('disappear'); // Apply disappear class for smooth fade out
+                
+                // Wait for the transition to end before removing the marker
+                setTimeout(() => {
+                    markersLayer.removeLayer(layer); // Remove layer after fade-out is complete
+                }, 500); // Time should match the transition duration
+            });
+
+            // Create a bounds object to fit all markers dynamically
+            const bounds = [];
+
+            // Add new markers
+            validTowns.forEach((town, index) => {
+                const marker = L.marker([town.lat, town.lng], { icon: pinIcon }).addTo(markersLayer);
+
+                // Add marker's LatLng to bounds to adjust map view later
+                bounds.push([town.lat, town.lng]);
+
+                // Delay marker appearance for transition effect
+                setTimeout(() => {
+                    marker.getElement().classList.add('appear');
+                }, index * 10);
+
+                // Popup dialog box with town details
+                marker.bindPopup(`
+                    <div>
+                        <strong>${town.Town}</strong><br>
+                        <small>Population: ${town.Population}</small><br>
+                        <small>County: ${town.County}</small>
+                    </div>
+                `);
+
+                // Open popup on hover
+                marker.on('mouseover', function () {
+                    this.openPopup();
+                });
+
+                marker.on('mouseout', function () {
+                    this.closePopup();
+                });
+            });
+
+            // After all markers are added, adjust the map zoom and center to fit all markers
+            if (bounds.length > 0) {
+                const dynamicBounds = L.latLngBounds(bounds);
+                map.fitBounds(dynamicBounds); // This will zoom and center the map to show all markers
+            }
+        })
+        .catch(error => console.error("Error fetching town data:", error));
 }
 
-function renderTowns(towns) {
-    const validTowns = towns.filter(d => !isNaN(d.lng) && !isNaN(d.lat));
 
-    townGroup.selectAll(".town").remove();
+// Initial load of towns
+loadTowns();
 
-    townGroup.selectAll(".town")
-             .data(validTowns)
-             .enter()
-             .append("circle")
-             .attr("class", "town")
-             .attr("r", 5)
-             .attr("cx", d => projection([d.lng, d.lat])[0])
-             .attr("cy", d => projection([d.lng, d.lat])[1])
-             .on("mouseover", (event, d) => {
-                 d3.select(event.currentTarget).style("fill", "yellow");
-                 tooltip.style("display", "inline-block")
-                        .html(`Town: ${d.Town}<br>Population: ${d.Population}<br>County: ${d.County}`);
-             })
-             .on("mouseout", function() {
-                 d3.select(this).style("fill", "red");
-                 tooltip.style("display", "none");
-             });
-}
-
-// Zoom and pan functionality
-function applyZoom() {
-    const zoom = d3.zoom().scaleExtent([1, 8]).on("zoom", event => {
-        svg.selectAll("path").attr("transform", event.transform);
-        svg.select(".towns").attr("transform", event.transform);
-    });
-
-    svg.call(zoom);
-}
-
-// Reload button event listener
-function setupReloadButton() {
-    document.getElementById("reload-button").addEventListener("click", loadTowns);
-}
+// Reload button event to refresh towns
+document.getElementById("reload-button").addEventListener("click", loadTowns);
