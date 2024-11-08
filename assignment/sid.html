@@ -2,24 +2,118 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Interactive UK Map with D3</title>
-    <link rel="stylesheet" href="style.css">
-    <script defer src="https://d3js.org/d3.v6.min.js"></script>
-    <script defer src="https://unpkg.com/topojson@3"></script>
-    <script defer src="script.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D3 Assignment</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <link rel="stylesheet" href="sid.css" />
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #fafafa;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            color: #333;
+            margin-top: 30px;
+        }
+
+        p {
+            font-size: 1.1rem;
+            color: #555;
+            text-align: center;
+            width: 80%;
+            margin: 10px 0 30px;
+        }
+
+        /* Map container */
+        #map {
+            height: 80vh;
+            width: 90vw;
+            margin: 0;
+            border-radius: 10px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Control Panel */
+        #control-panel {
+            position: absolute;
+            top: 30px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 1rem;
+            color: #444;
+        }
+
+        input[type="number"], #reload-button {
+            padding: 8px 12px;
+            font-size: 1rem;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        input[type="number"] {
+            width: 80px;
+        }
+
+        #reload-button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        #reload-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Tooltip (Popup) */
+        .leaflet-popup {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #333;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            padding: 12px;
+            font-size: 0.9rem;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 </head>
 <body>
 
-<div id="tooltip" class="tooltip"></div>
+    <!-- Title and Description -->
+    <h1>UK Towns</h1>
+    <p>Hover over markers to see detailed information about towns across the UK.</p>
 
-<!-- Control Panel -->
-<div id="control-panel">
-    <button id="reload-button">Reload Towns</button>
-    <label for="town-count-input">Number of Towns:</label>
-    <input type="number" id="town-count-input" value="50" min="1">
-</div>
+    <!-- Map container -->
+    <div id="map"></div>
 
-<svg id="map"></svg>
+    <!-- Control panel for town count and reload button -->
+    <div id="control-panel">
+        <label for="town-count-input">Number of Towns:</label>
+        <input type="number" id="town-count-input" value="50" min="1">
+        <button id="reload-button">Reload Towns</button>
+    </div>
 
+    <!-- JavaScript files -->
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script src="sid.js"></script>
 </body>
 </html>
