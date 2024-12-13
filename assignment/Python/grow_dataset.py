@@ -1,5 +1,8 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import folium
+from folium.plugins import MarkerCluster
+
 #Step 1: Read the dataset
 file_path = "GrowLocations.csv"
 data = pd.read_csv(file_path)
@@ -82,3 +85,20 @@ plt.xlabel("Longitude")
 plt.ylabel("Latitude")
 plt.legend()
 plt.show()
+
+#Step 5: Overlaying the markers above the map
+uk_map = folium.Map(location=[54.5, -3.5], zoom_start=6)
+
+# Add points to the map using a Marker Cluster
+marker_cluster = MarkerCluster().add_to(uk_map)
+
+for _, row in filtered_data.iterrows():
+    folium.Marker(
+        location=[row['Latitude'], row['Longitude']],
+        popup=f"Location: {row['Location']}",
+        tooltip=f"Sensor ID: {row['Sensor ID']}"
+    ).add_to(marker_cluster)
+
+# Step 3: Save the map as an HTML file and display
+uk_map.save("uk_sensor_locations.html")
+uk_map
