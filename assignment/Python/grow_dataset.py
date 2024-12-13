@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import folium
-from folium.plugins import MarkerCluster
+
 
 #Step 1: Read the dataset
 file_path = "GrowLocations.csv"
@@ -31,18 +30,18 @@ print(filtered_data.head())
 
 #Step 3: Cleaning the data
 missing_values = filtered_data.isnull().sum()
-print(missing_values) #There is no missing data
+if missing_values.empty:
+    print("No out-of-bounds data found.")
+else:
+    print("Missing rows:")
+    print(missing_values)
 
 duplicates = filtered_data.duplicated().sum()
-print(duplicates) #There are no duplicate rows
-
-# Define bounding box for UK
-bounding_box = {
-    "Latitude Min": 49.5,  # Southernmost point of the UK
-    "Latitude Max": 60.9,  # Northernmost point of the UK
-    "Longitude Min": -8.2, # Westernmost point of the UK
-    "Longitude Max": 1.8   # Easternmost point of the UK
-}
+if duplicates.empty:
+    print("No out-of-bounds data found.")
+else:
+    print("Duplicated rows:")
+    print(duplicates)
 
 # Check for out-of-bound coordinates
 out_of_bounds = filtered_data[
@@ -53,8 +52,11 @@ out_of_bounds = filtered_data[
 ]
 
 # Display any out-of-bounds rows
-print("Rows with out-of-bounds coordinates:")
-print(out_of_bounds) #There are no out of bounds data
+if out_of_bounds.empty:
+    print("No out-of-bounds data found.")
+else:
+    print("Out-of-bounds rows:")
+    print(out_of_bounds)
 
 #Step 4 : Plot the Cleaned Data
 plt.figure(figsize=(10,10))
@@ -69,34 +71,20 @@ map_bounds = {
 }
 
 #Display the map
-plt.imshow(img, extent=[map_bounds["left"],map_bounds["right"],map_bounds["bottom"],map_bounds["top"]])
+plt.imshow(img, extent=[map_bounds["left"],map_bounds["right"],map_bounds["bottom"],map_bounds["top"]],alpha=0.6)
 
 #Scatter Plot of sensor locations
 plt.scatter(
     filtered_data["Longitude"],
     filtered_data["Latitude"],
     c = 'red',
-    s = 10,
+    s = 15,
     label = "Sensor Locations"
 )
 
-plt.title("Sensor Locations on UK map")
+plt.title("Sensor Locations on UK map",fontsize = 16)
 plt.xlabel("Longitude")
 plt.ylabel("Latitude")
 plt.legend()
 plt.show()
 
-#Step 5: Overlaying the markers above the map
-uk_map = folium.Map(location=[54.5, -3.5], zoom_start=6)
-
-# Add points to the map using a Marker Cluster
-marker_cluster = MarkerCluster().add_to(uk_map)
-
-for _, row in filtered_data.iterrows():
-    folium.Marker(
-        location=[row['Latitude'], row['Longitude']],
-    ).add_to(marker_cluster)
-
-# Step 3: Save the map as an HTML file and display
-uk_map.save("uk_sensor_locations.html")
-uk_map
