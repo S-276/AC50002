@@ -8,6 +8,7 @@ data = pd.read_csv(file_path)
 
 #Display the first few rows of the dataset
 print(data.head())
+print(f"Total rows in original dataset:{len(data)}")
 
 #Step 2: Filter the data to remove the invalid values
 bounding_box= {
@@ -16,7 +17,12 @@ bounding_box= {
     "Latitude Min": 50.681,
     "Latitude Max": 57.985
     }
-
+print("Bounding Box:")
+print(bounding_box)
+print("Original Data Longitude Range:")
+print(f"Min: {data['Longitude'].min()}, Max: {data['Longitude'].max()}")
+print("Original Data Latitude Range:")
+print(f"Min: {data['Latitude'].min()}, Max: {data['Latitude'].max()}")
 #Filtering Data
 filtered_data = data[
     (data["Longitude"] >= bounding_box["Longitude Min"]) &
@@ -27,7 +33,7 @@ filtered_data = data[
 
 #Display the filtered dataset
 print(filtered_data.head())
-
+print(f"Total rows in original dataset:{len(filtered_data)}")
 #Step 3: Cleaning the data
 missing_values = filtered_data.isnull().sum()
 if missing_values.empty:
@@ -58,7 +64,9 @@ else:
     print("Out-of-bounds rows:")
     print(out_of_bounds)
 
-#Step 4 : Plot the Cleaned Data
+# Step 4 : Plot the Cleaned Data
+print("Preparing to plot the data...")
+print(f"Number of points to plot: {len(filtered_data)}")
 plt.figure(figsize=(10,10))
 img = plt.imread("map7.png")
 
@@ -87,4 +95,5 @@ plt.xlabel("Longitude")
 plt.ylabel("Latitude")
 plt.legend()
 plt.show()
+print("Plotting complete.")
 
