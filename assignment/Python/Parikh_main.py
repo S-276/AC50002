@@ -1,193 +1,160 @@
+import itertools
+import re
 import os
 
+def read_values(filename):
+    """Reads letter scores from a file and returns a dictionary."""
+    scores = {}
+    with open(filename, 'r') as f:
+        for line in f:
+            letter, score = line.strip().split()
+            scores[letter.upper()] = int(score)
+    return scores
 
-def read_input_file(filename):
-    """Reads names from input file, skips empty or invalid lines
-    
-    Args:
-        filename (str): Name of the input file
-        
-    Returns:
-        list: List of Valid names.
-        
-    """
-    names = []
-    with open(filename, 'r') as file: #The 'r' stands for only reading the filename
-        for line in file:
-            name = line.strip() #This will remove all the empty spaces in the file
-            if name  and len(name.replace(" "," ")) >= 3 : #Atleast 3 valid characters
-                names.append(name)
-    return names
+def process_name(name):
+    """Processes a name to remove non-alphabet characters and split into words."""
+    words = re.sub(r"[^A-Za-z ]", " ", name).upper().split()
+    return words
 
-def load_letter_values(filename):
-    """Loads letter rarity values from values.txt file.
-    
-    Args:
-        filename(str): Name of the values file
-        
-    Return:
-        dict: Dictionary of letter scores
-    """
-    letter_values = {}
-    with open(filename, 'r') as file: 
-        for line in file:
-            letter,score = line.split()
-            letter_values[letter] = int(score)
-    return letter_values
-
-def generate_abbreviations(name,values):
-    """Generates all valid 3-letter abbreviations for a name.
-    
-    Args:
-        name(str): Name to abbreviate
-        values(dict): Letter score dictionary
-        
-    Returns:
-        list: List of all abbreviations with the lowest score
-    """
-    words = [word.upper() for word in name.split() if word.isaplha()] #Removes the extra special characters and converts the words into Uppercases
-    if len(words) < 1 or all(len(word)< 3 for word in words):
-        return [] #No valid abbreviations for this name
-    
+def improved_generate_abbreviations(name, scores):
+    """Advanced abbreviation generation with context-aware strategies."""
+    words = process_name(name)
     abbreviations = []
-    for word in words:
-        if len(word) >= 3:
-            for i in range(1, len(word)):
-                for j in range(i + 1, len(word)):
-                    abbr = word[0] + word[i] + word[j]
-                    score = calculate_score([word[0],word[i],word[j],values])
-                    abbreviations.append((abbr,score))
-    
-    #Select the abbrevation(s) with the lowest(best) score.
 
-    if abbreviations:
-        min_score = min(score for _, score in abbreviations) # Generator Expression 
-        #The underscore (_) is used as a placeholder for the first element in the tuple (the abbreviation itself), since it's not needed for the calculation.It is efficient for large datasets. 
-        best_abbrevations = [abbr for abbr,score in abbreviations if score == min_score] 
-        return best_abbrevations
+    # Enhanced single-word name handling
+    if len(words) == 1:
+        word = words[0]
         
-    return []
+        # Return "No valid abbreviation" for words 3 letters or shorter
+        if len(word) <= 3:
+            return []
 
-def process_name(names, values): 
-    """Processes a list of names to generate uniue abbrevations.
-    
-    Args:
-        names(list): List of names
-        values(dict): Letter score dictionary
-    
-    Returns:
-        dict: Dictionary mapping names to their best abbreviation(s)
-    """
-    abbreviation_result = {}
-    all_abbreviations = {}
-    for name in names:
-        abbreviations = generate_abbreviations(name,values)
-        abbreviation_result[name] = abbreviations
-        for abbr in abbreviations:
-            if abbr not in all_abbreviations:
-                all_abbreviations[abbr] = name #Checks if the name is unique
-            else:
-                all_abbreviations[abbr] = None # Mark as duplicate  
-    
-    #Removes Duplicate Abbreviations
-    
-    final_result = {}
-    for name,abbreviations in abbreviation_result.items():
-        valid_abbreviations = [abbr for abbr in abbreviations if all_abbreviations.get(abbr) == name] #Checks if the abbreviation is not used for another word(s)
-        final_result[name] = valid_abbreviations
-    
-    return final_result
+        # Prioritize meaningful letter selections
+        strategies = [
+            # Consonant-heavy abbreviations
+            lambda w: [abbr for abbr in [''.join(comb) 
+                for comb in itertools.combinations(
+                    [c for c in w if c not in 'AEIOU'], 3)
+                ] if len(abbr) == 3],
+            
+            # Balanced consonant-vowel approach
+            lambda w: [abbr for abbr in [''.join(comb) 
+                for comb in itertools.combinations(w, 3)
+                ] if len(abbr) == 3 and 
+                   sum(1 for c in abbr if c in 'AEIOU') in [1, 2]]
+        ]
 
-def calculate_score(letters,values):
-    """Calculates the score for a 3-letter abbreviation based on the postion and rarity.
-    
+        for strategy in strategies:
+            context_abbrs = strategy(word)
+            if context_abbrs:
+                abbreviations.extend(context_abbrs)
+                break
 
-    Args:
-        letters(list): Letters in the abbreviation
-        values(dict): Letter score dictionary
-        
-    Returns:
-        int: Total score for the abbreviations
-    """
+    # Multi-word name handling with advanced selection
+    else:
+        # Generate combinations from first letters of each word
+        for combination in itertools.product(
+            *[word[:3] for word in words]
+        ):
+            abbr = ''.join(combination)[:3]
+            if len(abbr) == 3:
+                abbreviations.append(abbr)
 
+    return list(set(abbreviations))
+
+def calculate_score(abbreviation, scores):
+    """Calculates the total score for an abbreviation based on letter positions."""
     total_score = 0
-    for idx, letter in enumerate(letters):
-        if letter not in values:
-            continue #Ignore Unexpected Characters
+    semantic_bonuses = {
+        'E': 20,  # Bonus for final E
+        'S': -3,  # Slight bonus for plural indicators
+        'R': -2,  # Slight bonus for verb/agent indicators
+    }
 
-        if idx == 0:#First letter of abbreviation.
-            score = 0
-        elif idx == len(letters) - 1: #Last letter
-            score == 20 if letter == 'E' else 5
+    for position, letter in enumerate(abbreviation, start= 1):
+        if position == 1:
+            score = 0  # First letter always free
+        elif position == len(abbreviation):
+            score = semantic_bonuses.get(letter, 5)  # Last letter special scoring
         else:
-            score = values[letter]
-        
+            # Progressive difficulty scoring
+            pos_score = 1 if position == 2 else (2 if position == 3 else 3)
+            score = pos_score + scores.get(letter, 0)
+
+        # Apply semantic bonuses
+        score += semantic_bonuses.get(letter, 0)
         total_score += score
+
     return total_score
 
-def get_output_filename(input_file):
-    """Generates the output file name based on the input file name.
+def process_names(names, scores):
+    """Processes a list of names to generate unique abbreviations."""
+    abbreviation_results = {}
 
-       
-    Args:
-        input_file(str): Name of the input file.
-        
-    Returns:
-        str: Name of the output file.
-    """
-    base_name = os.path.splitext(input_file)[0]
-    surname = "Parikh" 
-    return f"{surname}_{base_name}_abbreviations.txt"
+    for name in names:
+        name = name.strip()
+        if not name:
+            continue
 
-def write_output_file(output_file,abbreviations):
-    """Writes the abbreviaitons to the output file.
-    
-    Args:
-        output_file(str): Name of the output file.
-        abbreviations(dict): Dictionary of names and their abbreviations.
-    """
+        abbreviations = improved_generate_abbreviations(name, scores)
+        if not abbreviations:
+            abbreviation_results[name] = "No valid abbreviation"
+            continue
 
-    with open(output_file, 'w') as file: #The 'w' stands for only writing the file
-        for name, abbr_list in abbreviations.items():
-            file.write(name + "\n")
-            if abbr_list:
-                file.write(" ".join(abbr_list) + "\n")
-            else:
-                file.write("No valid abbeviations\n")
+        # Calculate scores for all abbreviations and select the lowest score
+        scored_abbreviations = {
+            abbr: calculate_score(abbr, scores) for abbr in abbreviations
+        }
+
+        if scored_abbreviations:
+            best_abbr = min(
+                scored_abbreviations, 
+                key=lambda abbr: (
+                    scored_abbreviations[abbr],  # Primary: lowest score
+                    sum(1 for c in abbr if c in 'AEIOU')  # Secondary: vowel balance
+                )
+            )
+            abbreviation_results[name] = best_abbr
+        else:
+            abbreviation_results[name] = "No valid abbreviation"
+
+    return abbreviation_results
+
+def write_output_file(output_file, abbreviations):
+    """Writes the generated abbreviations to an output file."""
+    with open(output_file, 'w') as file:
+        for name, abbr in abbreviations.items():
+            file.write(f"{name}\n{abbr}\n")
 
 def main():
-    """
-    Main function to orchestrate the program. Handles user input, processes names,
-    and generates abbreviations.
-    """
-    # Prompt user for input file
-    input_file = input("Enter the name of the input file (e.g., trees.txt): ")
-    
-    # Check if input file exists
-    if not os.path.exists(input_file):
-        print(f"Error: File '{input_file}' not found.")
+    """Main function to process the input file and write results."""
+    surname = "Parikh"
+    input_choice = input("Do you want to input names from a file (F) or manually (M)? Please type 'F' or 'M': ").strip().upper()
+
+    if input_choice == 'F':
+        input_file = input("Enter the name of the input file (e.g., trees.txt): ").strip()
+        with open(input_file, 'r') as infile:
+            names = [line.strip() for line in infile]
+        output_file = f"{surname}_{os.path.splitext(os.path.basename(input_file))[0]}_abbreviations.txt"
+    elif input_choice == 'M':
+        names = []
+        print("Enter names manually (one per line). Type 'END' to finish.")
+        while True:
+            name = input("Enter name: ").strip()
+            if name.upper() == "END":
+                break
+            elif name:
+                names.append(name)
+        output_file = f"{surname}_manual_abbreviations.txt"
+    else:
+        print("Invalid choice! Please enter 'F' for file input or 'M' for manual input.")
         return
-    
-    # Read names from input file
-    names = read_input_file(input_file)
-    if not names:
-        print("Error: The input file is empty or contains no valid names.")
-        return
-    
-    # Load letter values from 'values.txt'
-    values = load_letter_values("values.txt")
-    
-    # Process names to generate abbreviations
-    abbreviations = process_name(names, values)
-    
-    # Get the output file name
-    output_file = get_output_filename(input_file)
-    
-    # Ensure the directory for the output file exists
-    output_dir = os.path.dirname(output_file)
-    if not os.path.exists(output_dir) and output_dir != "":
-        os.makedirs(output_dir)  # Create the directory if it doesn't exist
-    
-    # Write the abbreviations to the output file
+
+    scores = read_values("values.txt")
+    abbreviations = process_names(names, scores)
+
     write_output_file(output_file, abbreviations)
     print(f"Abbreviations saved to '{output_file}'.")
+
+if __name__ == "__main__":
+    main()
