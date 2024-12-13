@@ -31,14 +31,14 @@ print(filtered_data.head())
 #Step 3: Cleaning the data
 missing_values = filtered_data.isnull().sum()
 if missing_values.empty:
-    print("No out-of-bounds data found.")
+    print("No missing data found.")
 else:
     print("Missing rows:")
     print(missing_values)
 
 duplicates = filtered_data.duplicated().sum()
-if duplicates.empty:
-    print("No out-of-bounds data found.")
+if duplicates == 0:
+    print("No duplicated data found.")
 else:
     print("Duplicated rows:")
     print(duplicates)
