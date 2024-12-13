@@ -95,8 +95,6 @@ marker_cluster = MarkerCluster().add_to(uk_map)
 for _, row in filtered_data.iterrows():
     folium.Marker(
         location=[row['Latitude'], row['Longitude']],
-        popup=f"Location: {row['Location']}",
-        tooltip=f"Sensor ID: {row['Sensor ID']}"
     ).add_to(marker_cluster)
 
 # Step 3: Save the map as an HTML file and display
