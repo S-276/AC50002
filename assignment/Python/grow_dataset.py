@@ -23,10 +23,37 @@ filtered_data = data[
     (data["Latitude"] <= bounding_box["Latitude Max"])
 ]
 
-#Display the cleaned dataset
+#Display the filtered dataset
 print(filtered_data.head())
 
-#Step 3 : Plot the Cleaned Data
+#Step 3: Cleaning the data
+missing_values = filtered_data.isnull().sum()
+print(missing_values) #There is no missing data
+
+duplicates = filtered_data.duplicated().sum()
+print(duplicates) #There are no duplicate rows
+
+# Define bounding box for UK
+bounding_box = {
+    "Latitude Min": 49.5,  # Southernmost point of the UK
+    "Latitude Max": 60.9,  # Northernmost point of the UK
+    "Longitude Min": -8.2, # Westernmost point of the UK
+    "Longitude Max": 1.8   # Easternmost point of the UK
+}
+
+# Check for out-of-bound coordinates
+out_of_bounds = filtered_data[
+    (filtered_data['Latitude'] < bounding_box["Latitude Min"]) |
+    (filtered_data['Latitude'] > bounding_box["Latitude Max"]) |
+    (filtered_data['Longitude'] < bounding_box["Longitude Min"]) |
+    (filtered_data['Longitude'] > bounding_box["Longitude Max"])
+]
+
+# Display any out-of-bounds rows
+print("Rows with out-of-bounds coordinates:")
+print(out_of_bounds) #There are no out of bounds data
+
+#Step 4 : Plot the Cleaned Data
 plt.figure(figsize=(10,10))
 img = plt.imread("map7.png")
 
