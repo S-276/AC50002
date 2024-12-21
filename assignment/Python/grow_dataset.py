@@ -34,6 +34,11 @@ filtered_data = data[
 #Display the filtered dataset
 print(filtered_data.head())
 print(f"Total rows in original dataset:{len(filtered_data)}")
+print(filtered_data.describe())
+# Check if the data falls within the UK latitude/longitude range
+assert filtered_data["Longitude"].between(-10.592, 1.6848).all()
+assert filtered_data["Latitude"].between(50.681, 57.985).all()
+
 #Step 3: Cleaning the data
 missing_values = filtered_data.isnull().sum()
 if missing_values.empty:
@@ -63,6 +68,7 @@ if out_of_bounds.empty:
 else:
     print("Out-of-bounds rows:")
     print(out_of_bounds)
+print(filtered_data[~filtered_data.index.isin(out_of_bounds.index)])
 
 # Step 4 : Plot the Cleaned Data
 print("Preparing to plot the data...")
@@ -79,14 +85,15 @@ map_bounds = {
 }
 
 #Display the map
-plt.imshow(img, extent=[map_bounds["left"],map_bounds["right"],map_bounds["bottom"],map_bounds["top"]],alpha=0.6)
+plt.imshow(img, extent=[map_bounds["left"],map_bounds["right"],map_bounds["bottom"],map_bounds["top"]])
 
 #Scatter Plot of sensor locations
 plt.scatter(
     filtered_data["Longitude"],
     filtered_data["Latitude"],
     c = 'red',
-    s = 15,
+    s = 50,
+    alpha=0.8,
     label = "Sensor Locations"
 )
 
@@ -95,5 +102,8 @@ plt.xlabel("Longitude")
 plt.ylabel("Latitude")
 plt.legend()
 plt.show()
+print(f"Map Extent: {map_bounds}")
+print(f"Point Range: Lon({filtered_data['Longitude'].min()}, {filtered_data['Longitude'].max()}), Lat({filtered_data['Latitude'].min()}, {filtered_data['Latitude'].max()})")
+
 print("Plotting complete.")
 
