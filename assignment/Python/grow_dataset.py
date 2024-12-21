@@ -1,109 +1,56 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-
+import geopandas as gpd
+from shapely.geometry import Point,box
 
 #Step 1: Read the dataset
 file_path = "GrowLocations.csv"
 data = pd.read_csv(file_path)
 
-#Display the first few rows of the dataset
+# Display the first few rows of the dataset and basic info
+print("First 5 rows of the dataset:")
 print(data.head())
-print(f"Total rows in original dataset:{len(data)}")
+print(f"Total rows in the original dataset: {len(data)}")
 
-#Step 2: Filter the data to remove the invalid values
-bounding_box= {
-    "Longitude Min": -10.592,
-    "Longitude Max": 1.6848,
-    "Latitude Min": 50.681,
-    "Latitude Max": 57.985
-    }
-print("Bounding Box:")
-print(bounding_box)
-print("Original Data Longitude Range:")
-print(f"Min: {data['Longitude'].min()}, Max: {data['Longitude'].max()}")
-print("Original Data Latitude Range:")
-print(f"Min: {data['Latitude'].min()}, Max: {data['Latitude'].max()}")
-#Filtering Data
-filtered_data = data[
-    (data["Longitude"] >= bounding_box["Longitude Min"]) &
-    (data["Longitude"] <= bounding_box["Longitude Max"]) &
-    (data["Latitude"] >= bounding_box["Latitude Min"]) &
-    (data["Latitude"] <= bounding_box["Latitude Max"])
-]
 
-#Display the filtered dataset
-print(filtered_data.head())
-print(f"Total rows in original dataset:{len(filtered_data)}")
-print(filtered_data.describe())
-# Check if the data falls within the UK latitude/longitude range
-assert filtered_data["Longitude"].between(-10.592, 1.6848).all()
-assert filtered_data["Latitude"].between(50.681, 57.985).all()
+# Step 2: Convert the data to a GeoDataFrame
+# Create a 'geometry' column from Longitude and Latitude
+geometry = [Point(xy) for xy in zip(data["Longitude"], data["Latitude"])]
+gdf = gpd.GeoDataFrame(data, geometry=geometry, crs="EPSG:4326")  # WGS 84 CRS
+# Step 3: Define the UK bounding box and filter points
+bounding_box = box(-10.592, 50.681, 1.6848, 57.985)  # (minx, miny, maxx, maxy)
+uk_boundary = gpd.GeoDataFrame({"geometry": [bounding_box]}, crs="EPSG:4326")
 
-#Step 3: Cleaning the data
-missing_values = filtered_data.isnull().sum()
-if missing_values.empty:
-    print("No missing data found.")
-else:
-    print("Missing rows:")
-    print(missing_values)
+# Filter the points within the bounding box
+filtered_gdf = gdf[gdf.geometry.within(bounding_box)]
 
-duplicates = filtered_data.duplicated().sum()
-if duplicates == 0:
-    print("No duplicated data found.")
-else:
-    print("Duplicated rows:")
-    print(duplicates)
+# Display the filtered dataset summary
+print("\nFiltered Data (First 5 rows):")
+print(filtered_gdf.head())
+print(f"Total rows in filtered dataset: {len(filtered_gdf)}")
 
-# Check for out-of-bound coordinates
-out_of_bounds = filtered_data[
-    (filtered_data['Latitude'] < bounding_box["Latitude Min"]) |
-    (filtered_data['Latitude'] > bounding_box["Latitude Max"]) |
-    (filtered_data['Longitude'] < bounding_box["Longitude Min"]) |
-    (filtered_data['Longitude'] > bounding_box["Longitude Max"])
-]
+# Step 4: Plot the cleaned data
+print("\nPreparing to plot the data...")
+# Load the UK map image (static image)
+map_image_path = "map7.png"  # Ensure this image exists
+img = plt.imread(map_image_path)
 
-# Display any out-of-bounds rows
-if out_of_bounds.empty:
-    print("No out-of-bounds data found.")
-else:
-    print("Out-of-bounds rows:")
-    print(out_of_bounds)
-print(filtered_data[~filtered_data.index.isin(out_of_bounds.index)])
+# Plot the map with sensor locations
+fig, ax = plt.subplots(figsize=(12, 8))
 
-# Step 4 : Plot the Cleaned Data
-print("Preparing to plot the data...")
-print(f"Number of points to plot: {len(filtered_data)}")
-plt.figure(figsize=(10,10))
-img = plt.imread("map7.png")
+# Set map bounds for the image
+ax.imshow(img, extent=[-10.592, 1.6848, 50.681, 57.985], alpha=0.5)
 
-#Define the Map bounds 
-map_bounds = {
-    "left": bounding_box["Longitude Min"],
-    "right": bounding_box["Longitude Max"],
-    "bottom": bounding_box["Latitude Min"],
-    "top": bounding_box["Latitude Max"]
-}
+# Plot the sensor locations
+filtered_gdf.plot(ax=ax, color="red", markersize=10, label="Sensor Locations")
 
-#Display the map
-plt.imshow(img, extent=[map_bounds["left"],map_bounds["right"],map_bounds["bottom"],map_bounds["top"]])
-
-#Scatter Plot of sensor locations
-plt.scatter(
-    filtered_data["Longitude"],
-    filtered_data["Latitude"],
-    c = 'red',
-    s = 50,
-    alpha=0.8,
-    label = "Sensor Locations"
-)
-
-plt.title("Sensor Locations on UK map",fontsize = 16)
-plt.xlabel("Longitude")
-plt.ylabel("Latitude")
+# Add plot details
+plt.title("Sensor Locations on UK Map", fontsize=16)
+plt.xlabel("Longitude", fontsize=12)
+plt.ylabel("Latitude", fontsize=12)
 plt.legend()
+plt.grid(visible=True, linestyle="--", alpha=0.6)
+plt.tight_layout()
 plt.show()
-print(f"Map Extent: {map_bounds}")
-print(f"Point Range: Lon({filtered_data['Longitude'].min()}, {filtered_data['Longitude'].max()}), Lat({filtered_data['Latitude'].min()}, {filtered_data['Latitude'].max()})")
 
-print("Plotting complete.")
-
+print("\nPlotting complete.")
